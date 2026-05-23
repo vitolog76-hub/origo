@@ -1,5 +1,4 @@
 import React from 'react'
-import { styles, colors } from '../styles/styles'
 import type { CalculationResult } from '../types'
 
 interface Props {
@@ -51,109 +50,271 @@ export const Planner: React.FC<Props> = ({
   result, onCalculate, onSave, getEnergyCost, calculateCost,
   saveMessage, saveError
 }) => {
+
+  const localStyles = {
+    // LA CARD: Solida, scura ed elegante, perfetta sopra a qualsiasi sfondo esterno
+    card: {
+      background: '#110d19',
+      borderRadius: '24px',
+      padding: '24px',
+      border: '1px solid rgba(170, 59, 255, 0.25)', 
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+      marginBottom: '20px',
+      position: 'relative' as const,
+      zIndex: 1 
+    },
+    title: {
+      fontFamily: 'var(--heading)',
+      fontSize: '22px',
+      fontWeight: '600' as const,
+      color: '#ffffff',
+      margin: '0 0 20px 0',
+      letterSpacing: '-0.5px',
+    },
+    label: {
+      display: 'block',
+      marginBottom: '8px',
+      color: '#cbd5e1', 
+      fontWeight: '500' as const,
+      fontSize: '13px',
+      letterSpacing: '0.2px',
+    },
+    input: {
+      width: '100%',
+      padding: '12px',
+      borderRadius: '14px',
+      border: '1px solid rgba(255, 255, 255, 0.12)',
+      fontSize: '16px',
+      boxSizing: 'border-box' as const,
+      background: 'rgba(0, 0, 0, 0.4)', 
+      color: '#ffffff',
+      outline: 'none',
+    },
+    btnCounter: {
+      width: '42px',
+      height: '42px',
+      borderRadius: '14px',
+      border: '1px solid rgba(255, 255, 255, 0.12)',
+      background: 'rgba(255, 255, 255, 0.1)',
+      color: '#ffffff',
+      fontSize: '18px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: '500' as const
+    },
+    slider: {
+      width: '100%',
+      height: '6px',
+      background: 'rgba(255, 255, 255, 0.15)',
+      borderRadius: '3px',
+      outline: 'none',
+      marginTop: '10px'
+    }
+  }
+
   return (
     <>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Configura ricarica</h2>
+      <style>{`
+        /* Pulizia totale: forziamo la trasparenza su tutti i possibili container dell'app */
+        body, #root, main, .App, 
+        [class*="layout"], [class*="wrapper"], [class*="container"], [class*="content"] {
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+        }
+
+        header, nav, [class*="nav"], [class*="header"], [class*="menu"] {
+          background-color: rgba(6, 5, 9, 0.6) !important;
+          backdrop-filter: blur(12px) !important;
+          -webkit-backdrop-filter: blur(12px) !important;
+          position: relative !important;
+          z-index: 2 !important; 
+        }
+
+        .btn-interactive-primary {
+          background: var(--accent);
+          border: none;
+          padding: 16px;
+          border-radius: 16px;
+          color: #ffffff;
+          font-weight: 600;
+          font-size: 15px;
+          cursor: pointer;
+          width: 100%;
+          box-shadow: 0 4px 14px rgba(170, 59, 255, 0.4);
+          margin-top: 10px;
+          transition: all 0.2s ease-in-out;
+        }
+        .btn-interactive-primary:hover {
+          filter: brightness(1.15);
+          box-shadow: 0 6px 20px rgba(170, 59, 255, 0.6);
+          transform: translateY(-1px);
+        }
+        .btn-interactive-primary:active {
+          filter: brightness(0.9);
+          transform: translateY(1px);
+        }
+
+        .btn-interactive-success {
+          background: #10b981;
+          border: none;
+          padding: 16px;
+          border-radius: 16px;
+          color: #ffffff;
+          font-weight: 600;
+          font-size: 15px;
+          cursor: pointer;
+          width: 100%;
+          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+          transition: all 0.2s ease-in-out;
+        }
+        .btn-interactive-success:hover {
+          filter: brightness(1.15);
+          box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+          transform: translateY(-1px);
+        }
+        .btn-interactive-success:active {
+          filter: brightness(0.9);
+          transform: translateY(1px);
+        }
+
+        .btn-location {
+          flex: 1;
+          padding: 12px;
+          border-radius: 12px;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 13px;
+          transition: all 0.2s ease;
+        }
+        .btn-location:hover {
+          filter: brightness(1.2);
+        }
+      `}</style>
+
+      <div style={localStyles.card}>
+        <h2 style={localStyles.title}>Configura ricarica</h2>
         
         <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
           <div style={{ flex: 1 }}>
-            <label style={styles.label}>SOC Iniziale • {socInitial}%</label>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-              <button onClick={() => adjustInteger(socInitial, -1, setSocInitial, 0, 99)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>-</button>
-              <input type="number" min="0" max="99" value={socInitial} onChange={(e) => setSocInitial(Math.min(99, Math.max(0, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
-              <button onClick={() => adjustInteger(socInitial, 1, setSocInitial, 0, 99)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>+</button>
+            <label style={localStyles.label}>SOC Iniziale • {socInitial}%</label>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '4px' }}>
+              <button onClick={() => adjustInteger(socInitial, -1, setSocInitial, 0, 99)} style={localStyles.btnCounter}>-</button>
+              <input type="number" min="0" max="99" value={socInitial} onChange={(e) => setSocInitial(Math.min(99, Math.max(0, Number(e.target.value))))} style={{ ...localStyles.input, textAlign: 'center' }} />
+              <button onClick={() => adjustInteger(socInitial, 1, setSocInitial, 0, 99)} style={localStyles.btnCounter}>+</button>
             </div>
-            <input type="range" min="0" max="99" value={socInitial} onChange={(e) => setSocInitial(Number(e.target.value))} style={styles.slider} />
+            <input type="range" min="0" max="99" value={socInitial} onChange={(e) => setSocInitial(Number(e.target.value))} style={localStyles.slider} />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={styles.label}>SOC Finale • {socFinal}%</label>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-              <button onClick={() => adjustInteger(socFinal, -1, setSocFinal, 1, 100)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>-</button>
-              <input type="number" min="1" max="100" value={socFinal} onChange={(e) => setSocFinal(Math.min(100, Math.max(1, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
-              <button onClick={() => adjustInteger(socFinal, 1, setSocFinal, 1, 100)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>+</button>
+            <label style={localStyles.label}>SOC Finale • {socFinal}%</label>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '4px' }}>
+              <button onClick={() => adjustInteger(socFinal, -1, setSocFinal, 1, 100)} style={localStyles.btnCounter}>-</button>
+              <input type="number" min="1" max="100" value={socFinal} onChange={(e) => setSocFinal(Math.min(100, Math.max(1, Number(e.target.value))))} style={{ ...localStyles.input, textAlign: 'center' }} />
+              <button onClick={() => adjustInteger(socFinal, 1, setSocFinal, 1, 100)} style={localStyles.btnCounter}>+</button>
             </div>
-            <input type="range" min="1" max="100" value={socFinal} onChange={(e) => setSocFinal(Number(e.target.value))} style={styles.slider} />
+            <input type="range" min="1" max="100" value={socFinal} onChange={(e) => setSocFinal(Number(e.target.value))} style={localStyles.slider} />
           </div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={styles.label}>Orario Target (auto pronta)</label>
-          <div style={{ background: colors.lightGray, borderRadius: '14px', padding: '12px', textAlign: 'center' }}>
-            <input type="time" value={targetTime} onChange={(e) => setTargetTime(e.target.value)} style={{ fontSize: '40px', fontWeight: '600', fontFamily: 'monospace', border: 'none', background: 'transparent', textAlign: 'center', width: '100%', color: colors.primary }} />
+          <label style={localStyles.label}>Orario Target (auto pronta)</label>
+          <div style={{ background: 'rgba(0, 0, 0, 0.4)', borderRadius: '14px', padding: '12px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <input type="time" value={targetTime} onChange={(e) => setTargetTime(e.target.value)} style={{ fontSize: '36px', fontWeight: '700', fontFamily: 'monospace', border: 'none', background: 'transparent', textAlign: 'center', width: '100%', color: 'var(--accent)', outline: 'none' }} />
           </div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={styles.label}>Potenza ricarica • {chargingPower.toFixed(1)} kW</label>
+          <label style={localStyles.label}>Potenza ricarica • {chargingPower.toFixed(1)} kW</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button onClick={() => adjustPower(chargingPower, -0.5, setChargingPower)} style={{ width: '40px', height: '40px', borderRadius: '20px', background: colors.lightGray, border: 'none', fontSize: '20px', cursor: 'pointer', color: colors.primary, fontWeight: '600' }}>-</button>
-            <input type="range" min="1" max="50" step="0.5" value={chargingPower} onChange={(e) => setChargingPower(parseFloat(e.target.value))} style={{ flex: 1, height: '4px', borderRadius: '2px', background: colors.border }} />
-            <button onClick={() => adjustPower(chargingPower, 0.5, setChargingPower)} style={{ width: '40px', height: '40px', borderRadius: '20px', background: colors.lightGray, border: 'none', fontSize: '20px', cursor: 'pointer', color: colors.primary, fontWeight: '600' }}>+</button>
+            <button onClick={() => adjustPower(chargingPower, -0.5, setChargingPower)} style={localStyles.btnCounter}>-</button>
+            <input type="range" min="1" max="50" step="0.5" value={chargingPower} onChange={(e) => setChargingPower(parseFloat(e.target.value))} style={{ flex: 1, height: '6px', background: 'rgba(255, 255, 255, 0.15)', borderRadius: '3px', outline: 'none' }} />
+            <button onClick={() => adjustPower(chargingPower, 0.5, setChargingPower)} style={localStyles.btnCounter}>+</button>
           </div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={styles.label}>Capacità batteria • {batteryCapacity} kWh</label>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-            <button onClick={() => adjustInteger(batteryCapacity, -1, setBatteryCapacity, 20, 100)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>-</button>
-            <input type="number" min="20" max="100" value={batteryCapacity} onChange={(e) => setBatteryCapacity(Math.min(100, Math.max(20, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
-            <button onClick={() => adjustInteger(batteryCapacity, 1, setBatteryCapacity, 20, 100)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>+</button>
+          <label style={localStyles.label}>Capacità batteria • {batteryCapacity} kWh</label>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '4px' }}>
+            <button onClick={() => adjustInteger(batteryCapacity, -1, setBatteryCapacity, 20, 100)} style={localStyles.btnCounter}>-</button>
+            <input type="number" min="20" max="100" value={batteryCapacity} onChange={(e) => setBatteryCapacity(Math.min(100, Math.max(20, Number(e.target.value))))} style={{ ...localStyles.input, textAlign: 'center' }} />
+            <button onClick={() => adjustInteger(batteryCapacity, 1, setBatteryCapacity, 20, 100)} style={localStyles.btnCounter}>+</button>
           </div>
-          <input type="range" min="20" max="100" step="1" value={batteryCapacity} onChange={(e) => setBatteryCapacity(Number(e.target.value))} style={styles.slider} />
+          <input type="range" min="20" max="100" step="1" value={batteryCapacity} onChange={(e) => setBatteryCapacity(Number(e.target.value))} style={localStyles.slider} />
         </div>
 
         {saveMessage && (
-          <div style={{ marginBottom: '16px', padding: '14px', borderRadius: '18px', background: 'rgba(16, 185, 129, 0.14)', color: '#065f46', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
-            ✅ {saveMessage}
+          <div style={{ marginBottom: '16px', padding: '14px', borderRadius: '14px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', fontSize: '14px', fontWeight: '500' }}>
+            {saveMessage}
           </div>
         )}
 
         {saveError && (
-          <div style={{ marginBottom: '16px', padding: '14px', borderRadius: '18px', background: 'rgba(239, 68, 68, 0.12)', color: '#991b1b', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
-            ❌ {saveError}
+          <div style={{ marginBottom: '16px', padding: '14px', borderRadius: '14px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '14px', fontWeight: '500' }}>
+            {saveError}
           </div>
         )}
 
-        <button onClick={onCalculate} style={styles.buttonPrimary}>Calcola orario inizio</button>
+        <button onClick={onCalculate} className="btn-interactive-primary">Calcola orario inizio</button>
       </div>
 
       {result && (
-        <div style={styles.card}>
-          <h2 style={styles.title}>Risultato</h2>
+        <div style={localStyles.card}>
+          <h2 style={localStyles.title}>Risultato del calcolo</h2>
           
-          <div style={{ background: colors.primary, borderRadius: '20px', padding: '20px', marginBottom: '20px', textAlign: 'center' }}>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', marginBottom: '4px' }}>INIZIA A CARICARE ALLE</div>
-            <div style={{ fontSize: '48px', fontWeight: '700', color: 'white', marginBottom: '12px', letterSpacing: '-2px' }}>{result.startTime}</div>
-            <div style={styles.grid3}>
-              <div><div style={{ fontSize: '10px', opacity: 0.7 }}>Auto pronta</div><div style={{ fontSize: '14px', fontWeight: '600' }}>{result.endTime}</div></div>
-              <div><div style={{ fontSize: '10px', opacity: 0.7 }}>Durata</div><div style={{ fontSize: '14px', fontWeight: '600' }}>{result.duration.toFixed(1)} h</div></div>
-              <div><div style={{ fontSize: '10px', opacity: 0.7 }}>Energia</div><div style={{ fontSize: '14px', fontWeight: '600' }}>{result.kwhNeeded.toFixed(1)} kWh</div></div>
+          <div style={{ background: 'linear-gradient(135deg, rgba(170, 59, 255, 0.2) 0%, rgba(79, 70, 229, 0.2) 100%)', borderRadius: '16px', padding: '20px', marginBottom: '20px', textAlign: 'center', border: '1px solid rgba(170, 59, 255, 0.3)' }}>
+            <div style={{ color: '#e9d5ff', fontSize: '11px', marginBottom: '4px', fontWeight: '600', letterSpacing: '1px' }}>START CHARGING PROCESS AT</div>
+            <div style={{ fontSize: '46px', fontWeight: '800', color: '#ffffff', marginBottom: '14px', letterSpacing: '-1px' }}>{result.startTime}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '12px' }}>
+              <div><div style={{ fontSize: '10px', color: '#cbd5e1', textTransform: 'uppercase' }}>Target</div><div style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginTop: '2px' }}>{result.endTime}</div></div>
+              <div><div style={{ fontSize: '10px', color: '#cbd5e1', textTransform: 'uppercase' }}>Duration</div><div style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginTop: '2px' }}>{result.duration.toFixed(1)}h</div></div>
+              <div><div style={{ fontSize: '10px', color: '#cbd5e1', textTransform: 'uppercase' }}>Energy</div><div style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginTop: '2px' }}>{result.kwhNeeded.toFixed(1)} kWh</div></div>
             </div>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={styles.label}>Tipo ricarica</label>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setLocationType('home')} style={{ flex: 1, padding: '10px', borderRadius: '12px', border: locationType === 'home' ? `2px solid ${colors.primary}` : `1px solid ${colors.border}`, background: locationType === 'home' ? '#e8f0fe' : 'white', cursor: 'pointer', fontWeight: '500', color: locationType === 'home' ? colors.primary : colors.dark }}>Home</button>
-              <button onClick={() => setLocationType('public')} style={{ flex: 1, padding: '10px', borderRadius: '12px', border: locationType === 'public' ? `2px solid ${colors.primary}` : `1px solid ${colors.border}`, background: locationType === 'public' ? '#e8f0fe' : 'white', cursor: 'pointer', fontWeight: '500', color: locationType === 'public' ? colors.primary : colors.dark }}>Pubblica</button>
+            <label style={localStyles.label}>Tipo ricarica</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={() => setLocationType('home')} 
+                className="btn-location"
+                style={{ 
+                  border: locationType === 'home' ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.1)', 
+                  background: locationType === 'home' ? 'rgba(170, 59, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)', 
+                  color: locationType === 'home' ? '#ffffff' : '#9ca3af' 
+                }}
+              >
+                HOME STATION
+              </button>
+              <button 
+                onClick={() => setLocationType('public')} 
+                className="btn-location"
+                style={{ 
+                  border: locationType === 'public' ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.1)', 
+                  background: locationType === 'public' ? 'rgba(170, 59, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)', 
+                  color: locationType === 'public' ? '#ffffff' : '#9ca3af' 
+                }}
+              >
+                PUBLIC STATION
+              </button>
             </div>
           </div>
 
           {locationType === 'public' && (
             <div style={{ marginBottom: '16px' }}>
-              <label style={styles.label}>Costo operatore (€/kWh)</label>
-              <input type="number" step="0.01" value={operatorCost} onChange={(e) => setOperatorCost(parseFloat(e.target.value))} style={styles.input} />
+              <label style={localStyles.label}>Costo operatore (€/kWh)</label>
+              <input type="number" step="0.01" value={operatorCost} onChange={(e) => setOperatorCost(parseFloat(e.target.value))} style={localStyles.input} />
             </div>
           )}
 
-          <div style={{ background: colors.lightGray, borderRadius: '16px', padding: '14px', textAlign: 'center', marginBottom: '16px' }}>
-            <div style={{ color: colors.gray, fontSize: '12px' }}>COSTO STIMATO</div>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: colors.dark }}>{calculateCost().toFixed(2)} €</div>
-            <div style={{ color: colors.gray, fontSize: '11px', marginTop: '2px' }}>Costo energia: {getEnergyCost().toFixed(3)} €/kWh</div>
+          <div style={{ background: 'rgba(0, 0, 0, 0.3)', borderRadius: '14px', padding: '16px', textAlign: 'center', marginBottom: '20px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <div style={{ color: '#9ca3af', fontSize: '11px', fontWeight: '600', letterSpacing: '0.5px' }}>ESTIMATED SESSION COST</div>
+            <div style={{ fontSize: '32px', fontWeight: '800', color: '#10b981', marginTop: '2px' }}>{calculateCost().toFixed(2)} €</div>
+            <div style={{ color: '#cbd5e1', fontSize: '11px', marginTop: '4px', fontFamily: 'monospace' }}>Rate: {getEnergyCost().toFixed(3)} €/kWh</div>
           </div>
 
-          <button onClick={onSave} style={{ ...styles.buttonPrimary, background: colors.success }}>Salva ricarica</button>
+          <button onClick={onSave} className="btn-interactive-success">Salva ricarica</button>
         </div>
       )}
     </>

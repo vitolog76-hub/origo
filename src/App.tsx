@@ -27,14 +27,10 @@ import {
 } from 'firebase/firestore';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Planner } from './components/Planner'
-import { History } from './components/History'
-import { Profile } from './components/Profile'
-
-// --------------------------------------------------------------
-// TIPI
-// --------------------------------------------------------------
-import type { ChargingSession, CalculationResult } from './types'
+import { Planner } from './components/Planner';
+import { History } from './components/History';
+import { Profile } from './components/Profile';
+import type { ChargingSession } from './types';
 
 interface UserProfile {
   firstName: string;
@@ -48,9 +44,6 @@ interface UserProfile {
   fasce?: { F1: number; F2: number; F3: number };
 }
 
-// --------------------------------------------------------------
-// LISTE
-// --------------------------------------------------------------
 const ENERGY_PROVIDERS = [
   'Enel Energia',
   'Eni Plenitude',
@@ -63,9 +56,6 @@ const ENERGY_PROVIDERS = [
   'Altro (scrivilo qui sotto)'
 ];
 
-// --------------------------------------------------------------
-// COMPONENTE PRINCIPALE
-// --------------------------------------------------------------
 function App() {
   // Auth
   const [user, setUser] = useState<User | null>(null);
@@ -100,11 +90,6 @@ function App() {
     new Date().toISOString().split('T')[0]
   );
 
-  // Costi energia are stored in user profile now
-
-  // ------------------------------------------------------------
-  // AUTENTICAZIONE + PROFILO + RICARICHE
-  // ------------------------------------------------------------
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -194,9 +179,6 @@ function App() {
     await signOut(auth);
   };
 
-  // ------------------------------------------------------------
-  // CALCOLI RICARICA
-  // ------------------------------------------------------------
   const calculateCharging = () => {
     const percentageNeeded = socFinal - socInitial;
     const kwhNeeded = (percentageNeeded / 100) * batteryCapacity;
@@ -230,7 +212,6 @@ function App() {
     if (!result || !user) return;
 
     try {
-      // base values
       const dateStr = new Date().toISOString().split('T')[0];
       const kwh = result.kwhNeeded;
       const energyRate = getEnergyCost();
@@ -238,7 +219,6 @@ function App() {
       const providerFixedMonthlyFee = userProfile?.providerFixedMonthlyFee || 0;
       const providerVariableRate = userProfile?.providerVariableRate || 0;
 
-      // create new session with partial costs (fixed portion will be computed in batch)
       const newSession = {
         date: dateStr,
         startTime: result.startTime,
@@ -258,15 +238,12 @@ function App() {
         createdAt: Timestamp.now()
       } as any;
 
-      // add new doc first so it is included in month query
       await addDoc(collection(db, 'chargings'), newSession);
 
-      // determine month window for this date
       const d = new Date(dateStr);
       const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
       const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
 
-      // fetch all chargings for this user in the same month
       const q = query(
         collection(db, 'chargings'),
         where('userId', '==', user.uid),
@@ -277,13 +254,12 @@ function App() {
 
       const monthTotalKwh = snap.docs.reduce((s, ds) => s + (ds.data().kwhCharged || 0), 0);
 
-      // batch update providerFixedPortion and totalCost for all docs in the month
       const batch = writeBatch(db);
       snap.forEach(ds => {
         const data: any = ds.data();
         const k = data.kwhCharged || 0;
         const fixedPortion = monthTotalKwh > 0 ? (k / monthTotalKwh) * providerFixedMonthlyFee : 0;
-        const areraC = typeof data.areraCost === 'number' ? data.areraCost : (k * (data.energyCost ?? areraPrice));
+        const areraC = typeof data.areraCost === 'number' ? data.areraCost : (k * (data.energyCost ?? 0));
         const providerVarC = typeof data.providerVariableCost === 'number' ? data.providerVariableCost : (k * providerVariableRate);
         const newTotal = areraC + providerVarC + fixedPortion;
         batch.update(doc(db, 'chargings', ds.id), {
@@ -340,9 +316,6 @@ function App() {
     setEditingCharge(null);
   };
 
-  // ------------------------------------------------------------
-  // PULISCI DUPLICATI (stessa data, startTime, kwhCharged)
-  // ------------------------------------------------------------
   const cleanDuplicates = async () => {
     if (!user) return;
     const confirmed = window.confirm('⚠️ Questa operazione rimuoverà i record duplicati (stessa data, orario, kWh). Continuare?');
@@ -374,14 +347,6 @@ function App() {
     alert(`Rimossi ${toDelete.length} record duplicati.`);
   };
 
-  // ------------------------------------------------------------
-  // ------------------------------------------------------------
-  // Energy settings are stored/edited in user profile
-  // ------------------------------------------------------------
-
-  // ------------------------------------------------------------
-  // ESPORTAZIONE PDF (intervallo date)
-  // ------------------------------------------------------------
   const exportToPDF = () => {
     if (!userProfile) return;
     const doc = new jsPDF();
@@ -410,7 +375,6 @@ function App() {
     doc.text(`Totale kWh: ${totalKwh.toFixed(2)} kWh`, 14, 75);
     doc.text(`Totale costo: € ${totalCost.toFixed(2)}`, 14, 85);
 
-    // summary breakdown
     doc.setFontSize(12);
     doc.text(`Dettaglio costi: ARERA € ${filteredChargings.length ? filteredChargings[0].energyCost.toFixed(3) : getEnergyCost().toFixed(3)} €/kWh (applicato per ricarica)`, 14, 95);
     doc.text(`Totale ARERA: € ${totalArera.toFixed(2)}  —  Gestore variabile: € ${totalProviderVar.toFixed(2)}  —  Quota fissa ripartita: € ${totalProviderFixed.toFixed(2)}`, 14, 102);
@@ -439,18 +403,8 @@ function App() {
     doc.save(`ricariche_${exportStartDate}_${exportEndDate}.pdf`);
   };
 
-  // ------------------------------------------------------------
-  // STATISTICHE E UTILITY
-  // ------------------------------------------------------------
   const totalKwh = chargings.reduce((s, c) => s + c.kwhCharged, 0);
   const totalCost = chargings.reduce((s, c) => s + c.totalCost, 0);
-
-  const adjustPower = (delta: number) => {
-    let newValue = chargingPower + delta;
-    if (newValue < 1) newValue = 1;
-    if (newValue > 50) newValue = 50;
-    setChargingPower(parseFloat(newValue.toFixed(1)));
-  };
 
   const currentYear = new Date().getFullYear();
   const monthlyData = [];
@@ -469,93 +423,192 @@ function App() {
   const maxCost = Math.max(...monthlyData.map(d => d.cost), 1);
   const months = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 
-  const groupedHistory = Object.values(chargings.reduce((acc, c) => {
-    const date = new Date(c.date);
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const key = `${year}-${month}`;
-    if (!acc[key]) {
-      acc[key] = { year, month, charges: [] as ChargingSession[], totalKwh: 0, totalCost: 0 };
-    }
-    acc[key].charges.push(c);
-    acc[key].totalKwh += c.kwhCharged;
-    acc[key].totalCost += c.totalCost;
-    return acc;
-  }, {} as Record<string, { year: number; month: number; charges: ChargingSession[]; totalKwh: number; totalCost: number; }>)).sort((a, b) => b.year - a.year || b.month - a.month);
-
-  // ------------------------------------------------------------
-  // STILI
-  // ------------------------------------------------------------
+  // RESTYLING COMPLETO TECH / CYBERPUNK (Dark Mode, Glow ed EV-Style)
   const styles = {
-    container: { minHeight: '100vh', background: 'rgba(255,255,255,0.45)', padding: '32px', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.14)' },
-    card: { background: 'rgba(255,255,255,0.72)', borderRadius: '28px', padding: '24px', boxShadow: '0 28px 90px rgba(88, 99, 234, 0.14)', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.65)', backdropFilter: 'blur(24px)' },
-    buttonPrimary: { background: '#4f46e5', border: 'none', padding: '14px', borderRadius: '16px', color: 'white', fontWeight: '600', fontSize: '16px', cursor: 'pointer', width: '100%' },
-    buttonSuccess: { background: '#10b981', border: 'none', padding: '14px', borderRadius: '16px', color: 'white', fontWeight: '600', fontSize: '16px', cursor: 'pointer', width: '100%' },
-    input: { width: '100%', padding: '14px', borderRadius: '16px', border: '1px solid rgba(156, 163, 175, 0.3)', fontSize: '16px', boxSizing: 'border-box', background: 'rgba(255,255,255,0.9)' },
-    label: { display: 'block', marginBottom: '10px', color: '#303043', fontWeight: '600', fontSize: '14px' },
-    title: { fontSize: '24px', fontWeight: '700', color: '#18181b', marginBottom: '18px' },
-    slider: { width: '100%', height: '6px', background: 'rgba(79, 70, 229, 0.16)', WebkitAppearance: 'none' as const },
-    grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' },
-    grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' },
-    tab: { flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.55)', fontWeight: '700', fontSize: '15px', cursor: 'pointer', background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)' }
+    container: {
+      minHeight: '100vh',
+      background: 'transparent', // SBLOCCATO: Diventa trasparente per far passare i cerchi globali!
+      padding: '16px',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      color: '#f4f4f5',
+      boxSizing: 'border-box' as const,
+      position: 'relative' as const,
+      zIndex: 1
+    },
+    card: {
+      background: 'rgba(20, 20, 25, 0.7)', // Pannello semi-trasparente scuro
+      borderRadius: '16px',
+      padding: '20px',
+      border: '1px solid rgba(63, 63, 70, 0.4)', // Bordo tech sottile
+      boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      marginBottom: '16px'
+    },
+    buttonPrimary: {
+      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+      border: '1px solid rgba(255,255,255,0.1)',
+      padding: '14px',
+      borderRadius: '12px',
+      color: '#ffffff',
+      fontWeight: '600' as const,
+      fontSize: '14px',
+      cursor: 'pointer',
+      width: '100%',
+      textTransform: 'uppercase' as const,
+      letterSpacing: '0.5px',
+      boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+    },
+    buttonSuccess: {
+      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+      border: '1px solid rgba(255,255,255,0.1)',
+      padding: '14px',
+      borderRadius: '12px',
+      color: '#ffffff',
+      fontWeight: '600' as const,
+      fontSize: '14px',
+      cursor: 'pointer',
+      width: '100%',
+      textTransform: 'uppercase' as const,
+      letterSpacing: '0.5px',
+      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.2)'
+    },
+    input: {
+      width: '100%',
+      padding: '12px',
+      borderRadius: '12px',
+      border: '1px solid #3f3f46',
+      fontSize: '14px',
+      boxSizing: 'border-box' as const,
+      background: '#18181b',
+      color: '#ffffff',
+      outline: 'none'
+    },
+    label: {
+      display: 'block',
+      marginBottom: '6px',
+      color: '#a1a1aa', 
+      fontWeight: '600' as const,
+      fontSize: '12px',
+      textTransform: 'uppercase' as const,
+      letterSpacing: '0.5px'
+    },
+    title: {
+      fontSize: '18px',
+      fontWeight: '700' as const,
+      color: '#ffffff',
+      marginBottom: '16px',
+      letterSpacing: '-0.3px'
+    },
+    grid2: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: '12px'
+    },
+    grid3: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '8px'
+    },
+    tab: {
+      flex: 1,
+      padding: '10px',
+      borderRadius: '30px',
+      border: 'none',
+      fontWeight: '600' as const,
+      fontSize: '13px',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease'
+    }
   };
 
-  // ------------------------------------------------------------
-  // LOGIN
-  // ------------------------------------------------------------
   if (!user) {
     return (
       <div style={styles.container}>
+        {/* Sfondo atomico globale iniettato per la schermata di login */}
+        <style>{`
+          body, html, #root {
+            background-color: #07040d !important;
+            background-image: 
+              radial-gradient(circle at 15% 15%, rgba(79, 70, 229, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 85% 75%, rgba(16, 185, 129, 0.15) 0%, transparent 45%) !important;
+            background-attachment: fixed;
+          }
+        `}</style>
         <div style={{ maxWidth: '400px', margin: '0 auto', paddingTop: '60px' }}>
-          <h1 style={{ fontSize: '34px', fontWeight: '700', textAlign: 'center', marginBottom: '32px' }}>OriGo Charge</h1>
+          <h1 style={{ fontSize: '36px', fontWeight: '800', textAlign: 'center', marginBottom: '8px', letterSpacing: '-1px', color: '#fff' }}>
+            OriGo <span style={{ color: '#3b82f6', textShadow: '0 0 15px rgba(59,130,246,0.5)' }}>Charge</span>
+          </h1>
+          <p style={{ textAlign: 'center', color: '#71717a', fontSize: '14px', marginBottom: '32px' }}>EV Smart Energy Management Platform</p>
           <div style={styles.card}>
-            <h2 style={styles.title}>{isLogin ? 'Accedi' : 'Registrati'}</h2>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={styles.label}>Email</label>
+            <h2 style={{ ...styles.title, textAlign: 'center', fontSize: '20px' }}>SYSTEM AUTHENTICATION</h2>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={styles.label}>Email Address</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.input} />
             </div>
-            <div style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: '20px' }}>
               <label style={styles.label}>Password</label>
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.input} />
             </div>
-            {error && <div style={{ color: '#ff3b30', fontSize: '14px', marginBottom: '16px' }}>{error}</div>}
-            <button onClick={handleEmailAuth} style={styles.buttonPrimary}>{isLogin ? 'Accedi' : 'Registrati'}</button>
-            <button onClick={handleGoogleLogin} style={{ ...styles.buttonPrimary, background: '#4285F4', marginTop: '12px' }}>Accedi con Google</button>
-            <button onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: '#007aff', marginTop: '16px', cursor: 'pointer' }}>
-              {isLogin ? 'Crea un account' : 'Hai già un account? Accedi'}
-            </button>
+            {error && <div style={{ color: '#ef4444', fontSize: '12px', marginBottom: '14px', textAlign: 'center', fontWeight: '500' }}>{error}</div>}
+            <button onClick={handleEmailAuth} style={styles.buttonPrimary}>{isLogin ? 'Login' : 'Register'}</button>
+            <button onClick={handleGoogleLogin} style={{ ...styles.buttonPrimary, background: '#ffffff', color: '#18181b', marginTop: '10px', boxShadow: 'none' }}>Continue with Google</button>
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <button onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
+                {isLogin ? "Don't have an account? Sign up" : 'Already verified? Log in'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // ------------------------------------------------------------
-  // APP PRINCIPALE (DOPO LOGIN)
-  // ------------------------------------------------------------
   return (
     <div style={styles.container}>
+      {/* INIEZIONE FORZATA DELLO SFONDO GLOBALE + ELEMENTI DI RESET TRASPARENZA */}
+      <style>{`
+        body, html, #root {
+          background-color: #06040a !important;
+          background-image: 
+            radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.35) 0%, transparent 50%),
+            radial-gradient(circle at 90% 15%, rgba(16, 185, 129, 0.18) 0%, transparent 45%),
+            radial-gradient(circle at 25% 80%, rgba(170, 59, 255, 0.2) 0%, transparent 50%),
+            radial-gradient(circle at 85% 85%, rgba(79, 70, 229, 0.15) 0%, transparent 40%) !important;
+          background-attachment: fixed !important;
+          background-size: cover !important;
+        }
+      `}</style>
+
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h1 style={{ fontSize: '30px', fontWeight: '700', margin: 0 }}>OriGo Charge</h1>
-          <button onClick={handleLogout} style={{ background: '#ff3b30', border: 'none', padding: '8px 16px', borderRadius: '20px', color: 'white', fontWeight: '500', cursor: 'pointer' }}>Esci</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>
+            OriGo <span style={{ color: '#3b82f6' }}>⚡</span>
+          </h1>
+          <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #ef4444', padding: '6px 14px', borderRadius: '20px', color: '#ef4444', fontWeight: '600', cursor: 'pointer', fontSize: '11px', textTransform: 'uppercase' }}>Log Out</button>
         </div>
 
-        {/* TABS */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', background: 'rgba(255, 255, 255, 0.68)', padding: '6px', borderRadius: '28px', border: '1px solid rgba(255,255,255,0.45)', backdropFilter: 'blur(14px)' }}>
-          <button onClick={() => setActiveTab('planner')} style={{ ...styles.tab, background: activeTab === 'planner' ? '#ffffff' : 'transparent', color: activeTab === 'planner' ? '#007aff' : '#8e8e93' }}>Planner</button>
-          <button onClick={() => setActiveTab('history')} style={{ ...styles.tab, background: activeTab === 'history' ? '#ffffff' : 'transparent', color: activeTab === 'history' ? '#007aff' : '#8e8e93' }}>Storico</button>
-          <button onClick={() => setActiveTab('profile')} style={{ ...styles.tab, background: activeTab === 'profile' ? '#ffffff' : 'transparent', color: activeTab === 'profile' ? '#007aff' : '#8e8e93' }}>Profilo</button>
-        </div>
+        {/* TABS CON TRASPARENZA ULTRA LEGGERA ED EFFETTO VETRO (GLASSMORPHISM) */}
+<div style={{ 
+  display: 'flex', 
+  gap: '4px', 
+  marginBottom: '20px', 
+  background: 'rgba(255, 255, 255, 0.03)', // Trasparenza quasi totale (addio nero pesante)
+  padding: '4px', 
+  borderRadius: '30px', 
+  border: '1px solid rgba(255, 255, 255, 0.08)', // Bordino tech ultra sottile e luminoso
+  backdropFilter: 'blur(16px)', // Raddoppiata la sfocatura per un effetto vetro premium
+  WebkitBackdropFilter: 'blur(16px)' 
+}}>
+  <button onClick={() => setActiveTab('planner')} style={{ ...styles.tab, background: activeTab === 'planner' ? '#2563eb' : 'transparent', color: activeTab === 'planner' ? '#ffffff' : '#a1a1aa' }}>PLANNER</button>
+  <button onClick={() => setActiveTab('history')} style={{ ...styles.tab, background: activeTab === 'history' ? '#2563eb' : 'transparent', color: activeTab === 'history' ? '#ffffff' : '#a1a1aa' }}>DASHBOARD</button>
+  <button onClick={() => setActiveTab('profile')} style={{ ...styles.tab, background: activeTab === 'profile' ? '#2563eb' : 'transparent', color: activeTab === 'profile' ? '#ffffff' : '#a1a1aa' }}>VEHICLE & TARIFF</button>
+</div>
 
-        {/* TAB PROFILO */}
         {activeTab === 'profile' && (
           <Profile userProfile={userProfile} setUserProfile={setUserProfile} customProvider={customProvider} setCustomProvider={setCustomProvider} updateUserProfile={updateUserProfile} />
         )}
 
-        {/* TAB ENERGIA removed: energy settings now managed elsewhere (kept in state) */}
-
-        {/* TAB PLANNER */}
         {activeTab === 'planner' && (
           <Planner
             socInitial={socInitial}
@@ -582,129 +635,137 @@ function App() {
           />
         )}
 
-        {/* TAB STORICO + ESPORTAZIONE PDF + PULSANTE PULISCI DUPLICATI */}
         {activeTab === 'history' && (
           <>
+            {/* GRAFICI STATISTICHE CON LOOK SCURO/NEON */}
             <div style={styles.card}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={styles.title}>Statistiche mensili {currentYear}</h2>
-              </div>
-              <div><div style={{ fontSize: '13px', color: '#8e8e93', marginBottom: '8px' }}>kWh per mese</div>
-                <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '100px' }}>
+              <h2 style={styles.title}>ENERGY & COST ANALYTICS {currentYear}</h2>
+              <div style={{ marginBottom: '20px' }}>
+                <div style={styles.label}>Consumo Energetico (kWh)</div>
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '90px', background: '#18181b', padding: '12px 8px 4px 8px', borderRadius: '12px', border: '1px solid #27272a' }}>
                   {monthlyData.map((d, i) => (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ width: '100%', height: `${(d.kwh / maxKwh) * 80}px`, background: '#007aff', borderRadius: '4px 4px 0 0' }} />
-                      <div style={{ fontSize: '9px', marginTop: '4px', color: '#8e8e93' }}>{months[i]}</div>
-                      <div style={{ fontSize: '10px', fontWeight: '600' }}>{d.kwh.toFixed(0)}</div>
+                      <div style={{ width: '100%', height: `${(d.kwh / maxKwh) * 55}px`, background: 'linear-gradient(to top, #1d4ed8, #3b82f6)', borderRadius: '2px 2px 0 0', boxShadow: '0 0 8px rgba(59,130,246,0.3)' }} />
+                      <div style={{ fontSize: '8px', marginTop: '4px', color: '#71717a', fontWeight: '500' }}>{months[i]}</div>
+                      <div style={{ fontSize: '9px', fontWeight: '700', color: '#fff', marginTop: '2px' }}>{d.kwh > 0 ? d.kwh.toFixed(0) : ''}</div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div><div style={{ fontSize: '13px', color: '#8e8e93', marginBottom: '8px' }}>Costo per mese (€)</div>
-                <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '100px' }}>
+              <div>
+                <div style={styles.label}>Spesa Cumulata (€)</div>
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '90px', background: '#18181b', padding: '12px 8px 4px 8px', borderRadius: '12px', border: '1px solid #27272a' }}>
                   {monthlyData.map((d, i) => (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ width: '100%', height: `${(d.cost / maxCost) * 80}px`, background: '#34c759', borderRadius: '4px 4px 0 0' }} />
-                      <div style={{ fontSize: '9px', marginTop: '4px', color: '#8e8e93' }}>{months[i]}</div>
-                      <div style={{ fontSize: '10px', fontWeight: '600' }}>{d.cost.toFixed(0)}</div>
+                      <div style={{ width: '100%', height: `${(d.cost / maxCost) * 55}px`, background: 'linear-gradient(to top, #047857, #10b981)', borderRadius: '2px 2px 0 0', boxShadow: '0 0 8px rgba(16,185,129,0.3)' }} />
+                      <div style={{ fontSize: '8px', marginTop: '4px', color: '#71717a', fontWeight: '500' }}>{months[i]}</div>
+                      <div style={{ fontSize: '9px', fontWeight: '700', color: '#fff', marginTop: '2px' }}>{d.cost > 0 ? `€${d.cost.toFixed(0)}` : ''}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
+
+            {/* CONTATORI IN DIGIT-STYLE */}
             <div style={styles.card}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={styles.title}>Cronologia ricariche</h2>
-                <button
-                  onClick={cleanDuplicates}
-                  style={{ background: '#ff9500', border: 'none', padding: '8px 12px', borderRadius: '12px', color: 'white', fontWeight: '500', cursor: 'pointer' }}
-                >
-                  Pulisci duplicati
-                </button>
+                <h2 style={{ ...styles.title, marginBottom: 0 }}>LOG CONTROLS</h2>
+                <button onClick={cleanDuplicates} style={{ background: '#27272a', border: '1px solid #3f3f46', padding: '6px 12px', borderRadius: '20px', color: '#f4f4f5', fontWeight: '600', fontSize: '11px', cursor: 'pointer' }}>CLEAN DATA</button>
               </div>
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-                <div style={{ flex: 1, background: 'rgba(255,255,255,0.75)', borderRadius: '22px', padding: '18px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.55)', backdropFilter: 'blur(18px)' }}>
-                  <div style={{ fontSize: '22px', fontWeight: '700' }}>{totalKwh.toFixed(0)}</div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>kWh totali</div>
+
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                <div style={{ flex: 1, background: '#18181b', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid #27272a' }}>
+                  <div style={{ fontSize: '22px', fontWeight: '800', color: '#3b82f6' }}>{totalKwh.toFixed(0)}</div>
+                  <div style={{ fontSize: '10px', color: '#71717a', textTransform: 'uppercase', marginTop: '2px' }}>Total kWh</div>
                 </div>
-                <div style={{ flex: 1, background: 'rgba(255,255,255,0.75)', borderRadius: '22px', padding: '18px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.55)', backdropFilter: 'blur(18px)' }}>
-                  <div style={{ fontSize: '22px', fontWeight: '700', color: '#10b981' }}>{totalCost.toFixed(2)} €</div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>Costo totale</div>
+                <div style={{ flex: 1, background: '#18181b', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid #27272a' }}>
+                  <div style={{ fontSize: '22px', fontWeight: '800', color: '#10b981' }}>€ {totalCost.toFixed(2)}</div>
+                  <div style={{ fontSize: '10px', color: '#71717a', textTransform: 'uppercase', marginTop: '2px' }}>Total Cost</div>
                 </div>
-                <div style={{ flex: 1, background: 'rgba(255,255,255,0.75)', borderRadius: '22px', padding: '18px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.55)', backdropFilter: 'blur(18px)' }}>
-                  <div style={{ fontSize: '22px', fontWeight: '700', color: '#4f46e5' }}>{chargings.length}</div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>Ricariche</div>
+                <div style={{ flex: 1, background: '#18181b', borderRadius: '12px', padding: '12px', textAlign: 'center', border: '1px solid #27272a' }}>
+                  <div style={{ fontSize: '22px', fontWeight: '800', color: '#e4e4e7' }}>{chargings.length}</div>
+                  <div style={{ fontSize: '10px', color: '#71717a', textTransform: 'uppercase', marginTop: '2px' }}>Sessions</div>
                 </div>
               </div>
 
-              {/* Esportazione PDF */}
-              <div style={{ marginBottom: '20px', padding: '18px', background: '#eef2ff', borderRadius: '20px' }}>
-                <label style={styles.label}>Esporta PDF per periodo</label>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', color: '#666' }}>Da data</label>
-                    <input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)} style={styles.input} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '12px', color: '#666' }}>A data</label>
-                    <input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} style={styles.input} />
-                  </div>
-                  <button onClick={exportToPDF} style={{ background: '#007aff', border: 'none', padding: '12px', borderRadius: '12px', color: 'white', fontWeight: '600', cursor: 'pointer', marginTop: '22px' }}>📄 Esporta PDF</button>
-                </div>
-              </div>
+              {/* EXPORT DATA PANEL - RIGOROSAMENTE CON EFFETTO LUCE VIOLACEA NEON */}
+<div style={{ 
+  marginBottom: '20px', 
+  padding: '14px', 
+  background: 'rgba(170, 59, 255, 0.06)', // Sfondo intriso di luce viola
+  borderRadius: '14px', 
+  border: '1px solid rgba(170, 59, 255, 0.25)', // Bordino viola neon accennato
+  boxShadow: '0 0 15px rgba(170, 59, 255, 0.1)', // Bagliore soffuso sotto al pannello
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)'
+}}>
+  <label style={styles.label}>Export Data Stream (PDF)</label>
+  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+    <div style={{ flex: 1 }}>
+      <input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)} style={{ ...styles.input, background: 'rgba(24, 24, 27, 0.6)', padding: '8px', fontSize: '12px' }} />
+    </div>
+    <div style={{ flex: 1 }}>
+      <input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} style={{ ...styles.input, background: 'rgba(24, 24, 27, 0.6)', padding: '8px', fontSize: '12px' }} />
+    </div>
+    <button onClick={exportToPDF} style={{ 
+      background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)', // Pulsante viola cyberpunk atomico
+      border: '1px solid rgba(255,255,255,0.1)', 
+      padding: '8px 16px', 
+      borderRadius: '12px', 
+      color: 'white', 
+      fontWeight: '700', 
+      fontSize: '12px', 
+      cursor: 'pointer', 
+      textTransform: 'uppercase',
+      boxShadow: '0 4px 12px rgba(168, 85, 247, 0.3)' // Glow sul bottone
+    }}>Export</button>
+  </div>
+</div>
 
-              {/* Modifica ricarica (se attiva) */}
+              {/* EDITOR MODIFICA */}
               {editingCharge && (
-                <div style={{ marginBottom: '20px', padding: '18px', background: '#f8fafc', borderRadius: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ marginBottom: '20px', padding: '16px', background: '#18181b', borderRadius: '14px', border: '1px solid #3f3f46' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <div>
-                      <div style={{ fontSize: '16px', fontWeight: '700' }}>Modifica ricarica</div>
-                      <div style={{ fontSize: '12px', color: '#8e8e93' }}>{editingCharge.date} • {editingCharge.startTime} → {editingCharge.endTime}</div>
+                      <div style={{ fontSize: '14px', fontWeight: '700', textTransform: 'uppercase' }}>Modify Stream Entry</div>
+                      <div style={{ fontSize: '11px', color: '#a1a1aa' }}>{editingCharge.date} • {editingCharge.startTime} → {editingCharge.endTime}</div>
                     </div>
-                    <button onClick={cancelEditingCharging} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#ff3b30' }}>×</button>
+                    <button onClick={cancelEditingCharging} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#ef4444', lineHeight: 1 }}>×</button>
                   </div>
-
                   <div style={styles.grid2}>
                     <div>
-                      <label style={styles.label}>SOC Iniziale • {editingSocInitial}%</label>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                        <button onClick={() => setEditingSocInitial((value) => Math.max(0, value - 1))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>-</button>
-                        <input type="number" min="0" max="99" value={editingSocInitial} onChange={(e) => setEditingSocInitial(Math.min(99, Math.max(0, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
-                        <button onClick={() => setEditingSocInitial((value) => Math.min(99, value + 1))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>+</button>
+                      <label style={styles.label}>SOC Start • {editingSocInitial}%</label>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <button onClick={() => setEditingSocInitial((v) => Math.max(0, v-1))} style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: '#fff', fontWeight: 'bold' }}>-</button>
+                        <input type="number" value={editingSocInitial} onChange={(e) => setEditingSocInitial(Math.min(99, Math.max(0, Number(e.target.value))))} style={{ ...styles.input, padding: '8px', textAlign: 'center' }} />
+                        <button onClick={() => setEditingSocInitial((v) => Math.min(99, v+1))} style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: '#fff', fontWeight: 'bold' }}>+</button>
                       </div>
-                      <input type="range" min="0" max="99" value={editingSocInitial} onChange={(e) => setEditingSocInitial(Number(e.target.value))} style={styles.slider} />
                     </div>
                     <div>
-                      <label style={styles.label}>SOC Finale • {editingSocFinal}%</label>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                        <button onClick={() => setEditingSocFinal((value) => Math.max(1, value - 1))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>-</button>
-                        <input type="number" min="1" max="100" value={editingSocFinal} onChange={(e) => setEditingSocFinal(Math.min(100, Math.max(1, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
-                        <button onClick={() => setEditingSocFinal((value) => Math.min(100, value + 1))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>+</button>
+                      <label style={styles.label}>SOC Target • {editingSocFinal}%</label>
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <button onClick={() => setEditingSocFinal((v) => Math.max(1, v-1))} style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: '#fff', fontWeight: 'bold' }}>-</button>
+                        <input type="number" value={editingSocFinal} onChange={(e) => setEditingSocFinal(Math.min(100, Math.max(1, Number(e.target.value))))} style={{ ...styles.input, padding: '8px', textAlign: 'center' }} />
+                        <button onClick={() => setEditingSocFinal((v) => Math.min(100, v+1))} style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: '#fff', fontWeight: 'bold' }}>+</button>
                       </div>
-                      <input type="range" min="1" max="100" value={editingSocFinal} onChange={(e) => setEditingSocFinal(Number(e.target.value))} style={styles.slider} />
                     </div>
                   </div>
-
-                  <div style={{ marginTop: '16px' }}>
-                    <label style={styles.label}>Potenza ricarica</label>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <button onClick={() => setEditingChargingPower((value) => Math.max(1, value - 0.5))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>-</button>
-                      <input type="number" min="1" max="50" step="0.5" value={editingChargingPower} onChange={(e) => setEditingChargingPower(Math.min(50, Math.max(1, parseFloat(e.target.value || '1'))))} style={{ ...styles.input, flex: 1, margin: 0, textAlign: 'center' }} />
-                      <button onClick={() => setEditingChargingPower((value) => Math.min(50, value + 0.5))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>+</button>
+                  <div style={{ marginTop: '14px' }}>
+                    <label style={styles.label}>Power Source (kW)</label>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                      <button onClick={() => setEditingChargingPower((v) => Math.max(1, v-0.5))} style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: '#fff', fontWeight: 'bold' }}>-</button>
+                      <input type="number" step="0.5" value={editingChargingPower} onChange={(e) => setEditingChargingPower(Math.min(50, Math.max(1, parseFloat(e.target.value))))} style={{ ...styles.input, padding: '8px', textAlign: 'center' }} />
+                      <button onClick={() => setEditingChargingPower((v) => Math.min(50, v+0.5))} style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid #3f3f46', background: '#27272a', color: '#fff', fontWeight: 'bold' }}>+</button>
                     </div>
                   </div>
-
-                  <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                    <button onClick={saveChargingEdit} style={{ ...styles.buttonSuccess, flex: 1 }}>Salva modifiche</button>
-                    <button onClick={cancelEditingCharging} style={{ ...styles.buttonPrimary, background: '#8e8e93', flex: 1 }}>Annulla</button>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                    <button onClick={saveChargingEdit} style={{ ...styles.buttonSuccess, padding: '10px', fontSize: '12px' }}>Commit</button>
+                    <button onClick={cancelEditingCharging} style={{ ...styles.buttonPrimary, background: '#27272a', borderColor: '#3f3f46', padding: '10px', fontSize: '12px' }}>Abort</button>
                   </div>
                 </div>
               )}
 
-              {/* Lista delle ricariche (component)} */}
-              <div>
-                <History chargings={chargings} onDelete={deleteCharging} onEdit={startEditingCharging} />
-              </div>
+              <History chargings={chargings} onDelete={deleteCharging} onEdit={startEditingCharging} />
             </div>
           </>
         )}
