@@ -31,6 +31,13 @@ const adjustPower = (current: number, delta: number, setter: (v: number) => void
   setter(parseFloat(newValue.toFixed(1)))
 }
 
+const adjustInteger = (current: number, delta: number, setter: (v: number) => void, min: number, max: number) => {
+  let newValue = current + delta
+  if (newValue < min) newValue = min
+  if (newValue > max) newValue = max
+  setter(newValue)
+}
+
 export const Planner: React.FC<Props> = ({
   socInitial, setSocInitial,
   socFinal, setSocFinal,
@@ -49,10 +56,20 @@ export const Planner: React.FC<Props> = ({
         <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
           <div style={{ flex: 1 }}>
             <label style={styles.label}>SOC Iniziale • {socInitial}%</label>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
+              <button onClick={() => adjustInteger(socInitial, -1, setSocInitial, 0, 99)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>-</button>
+              <input type="number" min="0" max="99" value={socInitial} onChange={(e) => setSocInitial(Math.min(99, Math.max(0, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
+              <button onClick={() => adjustInteger(socInitial, 1, setSocInitial, 0, 99)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>+</button>
+            </div>
             <input type="range" min="0" max="99" value={socInitial} onChange={(e) => setSocInitial(Number(e.target.value))} style={styles.slider} />
           </div>
           <div style={{ flex: 1 }}>
             <label style={styles.label}>SOC Finale • {socFinal}%</label>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
+              <button onClick={() => adjustInteger(socFinal, -1, setSocFinal, 1, 100)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>-</button>
+              <input type="number" min="1" max="100" value={socFinal} onChange={(e) => setSocFinal(Math.min(100, Math.max(1, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
+              <button onClick={() => adjustInteger(socFinal, 1, setSocFinal, 1, 100)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>+</button>
+            </div>
             <input type="range" min="1" max="100" value={socFinal} onChange={(e) => setSocFinal(Number(e.target.value))} style={styles.slider} />
           </div>
         </div>
@@ -75,6 +92,11 @@ export const Planner: React.FC<Props> = ({
 
         <div style={{ marginBottom: '20px' }}>
           <label style={styles.label}>Capacità batteria • {batteryCapacity} kWh</label>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
+            <button onClick={() => adjustInteger(batteryCapacity, -1, setBatteryCapacity, 20, 100)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>-</button>
+            <input type="number" min="20" max="100" value={batteryCapacity} onChange={(e) => setBatteryCapacity(Math.min(100, Math.max(20, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
+            <button onClick={() => adjustInteger(batteryCapacity, 1, setBatteryCapacity, 20, 100)} style={{ width: '40px', height: '40px', borderRadius: '16px', border: '1px solid rgba(79, 70, 229, 0.16)', background: 'rgba(255,255,255,0.9)', fontSize: '20px', cursor: 'pointer' }}>+</button>
+          </div>
           <input type="range" min="20" max="100" step="1" value={batteryCapacity} onChange={(e) => setBatteryCapacity(Number(e.target.value))} style={styles.slider} />
         </div>
 

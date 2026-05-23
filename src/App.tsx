@@ -476,17 +476,17 @@ function App() {
   // STILI
   // ------------------------------------------------------------
   const styles = {
-    container: { minHeight: '100vh', background: '#ffffff', padding: '20px', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif' },
-    card: { background: '#ffffff', borderRadius: '18px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: '16px', border: '1px solid #e5e5ea' },
-    buttonPrimary: { background: '#007aff', border: 'none', padding: '14px', borderRadius: '12px', color: 'white', fontWeight: '600', fontSize: '16px', cursor: 'pointer', width: '100%' },
-    buttonSuccess: { background: '#34c759', border: 'none', padding: '14px', borderRadius: '12px', color: 'white', fontWeight: '600', fontSize: '16px', cursor: 'pointer', width: '100%' },
-    input: { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #c6c6c8', fontSize: '16px', boxSizing: 'border-box' },
-    label: { display: 'block', marginBottom: '6px', color: '#1c1c1e', fontWeight: '500', fontSize: '14px' },
-    title: { fontSize: '22px', fontWeight: '600', color: '#1c1c1e', marginBottom: '16px' },
-    slider: { width: '100%', height: '4px', background: '#e5e5ea', WebkitAppearance: 'none' as const },
-    grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
-    grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' },
-    tab: { flex: 1, padding: '10px', borderRadius: '10px', border: 'none', fontWeight: '600', fontSize: '15px', cursor: 'pointer' }
+    container: { minHeight: '100vh', background: 'rgba(255,255,255,0.45)', padding: '32px', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.14)' },
+    card: { background: 'rgba(255,255,255,0.72)', borderRadius: '28px', padding: '24px', boxShadow: '0 28px 90px rgba(88, 99, 234, 0.14)', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.65)', backdropFilter: 'blur(24px)' },
+    buttonPrimary: { background: '#4f46e5', border: 'none', padding: '14px', borderRadius: '16px', color: 'white', fontWeight: '600', fontSize: '16px', cursor: 'pointer', width: '100%' },
+    buttonSuccess: { background: '#10b981', border: 'none', padding: '14px', borderRadius: '16px', color: 'white', fontWeight: '600', fontSize: '16px', cursor: 'pointer', width: '100%' },
+    input: { width: '100%', padding: '14px', borderRadius: '16px', border: '1px solid rgba(156, 163, 175, 0.3)', fontSize: '16px', boxSizing: 'border-box', background: 'rgba(255,255,255,0.9)' },
+    label: { display: 'block', marginBottom: '10px', color: '#303043', fontWeight: '600', fontSize: '14px' },
+    title: { fontSize: '24px', fontWeight: '700', color: '#18181b', marginBottom: '18px' },
+    slider: { width: '100%', height: '6px', background: 'rgba(79, 70, 229, 0.16)', WebkitAppearance: 'none' as const },
+    grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' },
+    grid3: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' },
+    tab: { flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.55)', fontWeight: '700', fontSize: '15px', cursor: 'pointer', background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)' }
   };
 
   // ------------------------------------------------------------
@@ -531,7 +531,7 @@ function App() {
         </div>
 
         {/* TABS */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', background: '#f2f2f7', padding: '4px', borderRadius: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', background: 'rgba(255, 255, 255, 0.68)', padding: '6px', borderRadius: '28px', border: '1px solid rgba(255,255,255,0.45)', backdropFilter: 'blur(14px)' }}>
           <button onClick={() => setActiveTab('planner')} style={{ ...styles.tab, background: activeTab === 'planner' ? '#ffffff' : 'transparent', color: activeTab === 'planner' ? '#007aff' : '#8e8e93' }}>Planner</button>
           <button onClick={() => setActiveTab('history')} style={{ ...styles.tab, background: activeTab === 'history' ? '#ffffff' : 'transparent', color: activeTab === 'history' ? '#007aff' : '#8e8e93' }}>Storico</button>
           <button onClick={() => setActiveTab('profile')} style={{ ...styles.tab, background: activeTab === 'profile' ? '#ffffff' : 'transparent', color: activeTab === 'profile' ? '#007aff' : '#8e8e93' }}>Profilo</button>
@@ -610,22 +610,22 @@ function App() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-                <div style={{ flex: 1, background: '#f2f2f7', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                <div style={{ flex: 1, background: 'rgba(255,255,255,0.75)', borderRadius: '22px', padding: '18px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.55)', backdropFilter: 'blur(18px)' }}>
                   <div style={{ fontSize: '22px', fontWeight: '700' }}>{totalKwh.toFixed(0)}</div>
-                  <div style={{ fontSize: '12px', color: '#8e8e93' }}>kWh totali</div>
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>kWh totali</div>
                 </div>
-                <div style={{ flex: 1, background: '#f2f2f7', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '22px', fontWeight: '700', color: '#34c759' }}>{totalCost.toFixed(2)} €</div>
-                  <div style={{ fontSize: '12px', color: '#8e8e93' }}>Costo totale</div>
+                <div style={{ flex: 1, background: 'rgba(255,255,255,0.75)', borderRadius: '22px', padding: '18px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.55)', backdropFilter: 'blur(18px)' }}>
+                  <div style={{ fontSize: '22px', fontWeight: '700', color: '#10b981' }}>{totalCost.toFixed(2)} €</div>
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>Costo totale</div>
                 </div>
-                <div style={{ flex: 1, background: '#f2f2f7', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '22px', fontWeight: '700', color: '#007aff' }}>{chargings.length}</div>
-                  <div style={{ fontSize: '12px', color: '#8e8e93' }}>Ricariche</div>
+                <div style={{ flex: 1, background: 'rgba(255,255,255,0.75)', borderRadius: '22px', padding: '18px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.55)', backdropFilter: 'blur(18px)' }}>
+                  <div style={{ fontSize: '22px', fontWeight: '700', color: '#4f46e5' }}>{chargings.length}</div>
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>Ricariche</div>
                 </div>
               </div>
 
               {/* Esportazione PDF */}
-              <div style={{ marginBottom: '20px', padding: '16px', background: '#f2f2f7', borderRadius: '12px' }}>
+              <div style={{ marginBottom: '20px', padding: '18px', background: '#eef2ff', borderRadius: '20px' }}>
                 <label style={styles.label}>Esporta PDF per periodo</label>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1 }}>
@@ -642,7 +642,7 @@ function App() {
 
               {/* Modifica ricarica (se attiva) */}
               {editingCharge && (
-                <div style={{ marginBottom: '20px', padding: '16px', background: '#f7f7f8', borderRadius: '16px' }}>
+                <div style={{ marginBottom: '20px', padding: '18px', background: '#f8fafc', borderRadius: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
                       <div style={{ fontSize: '16px', fontWeight: '700' }}>Modifica ricarica</div>
@@ -655,18 +655,18 @@ function App() {
                     <div>
                       <label style={styles.label}>SOC Iniziale • {editingSocInitial}%</label>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                        <button onClick={() => setEditingSocInitial((value) => Math.max(0, value - 1))} style={{ width: '44px', height: '44px', borderRadius: '14px', border: '1px solid #c6c6c8', background: '#f2f2f7', fontSize: '24px', cursor: 'pointer' }}>-</button>
+                        <button onClick={() => setEditingSocInitial((value) => Math.max(0, value - 1))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>-</button>
                         <input type="number" min="0" max="99" value={editingSocInitial} onChange={(e) => setEditingSocInitial(Math.min(99, Math.max(0, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
-                        <button onClick={() => setEditingSocInitial((value) => Math.min(99, value + 1))} style={{ width: '44px', height: '44px', borderRadius: '14px', border: '1px solid #c6c6c8', background: '#f2f2f7', fontSize: '24px', cursor: 'pointer' }}>+</button>
+                        <button onClick={() => setEditingSocInitial((value) => Math.min(99, value + 1))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>+</button>
                       </div>
                       <input type="range" min="0" max="99" value={editingSocInitial} onChange={(e) => setEditingSocInitial(Number(e.target.value))} style={styles.slider} />
                     </div>
                     <div>
                       <label style={styles.label}>SOC Finale • {editingSocFinal}%</label>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                        <button onClick={() => setEditingSocFinal((value) => Math.max(1, value - 1))} style={{ width: '44px', height: '44px', borderRadius: '14px', border: '1px solid #c6c6c8', background: '#f2f2f7', fontSize: '24px', cursor: 'pointer' }}>-</button>
+                        <button onClick={() => setEditingSocFinal((value) => Math.max(1, value - 1))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>-</button>
                         <input type="number" min="1" max="100" value={editingSocFinal} onChange={(e) => setEditingSocFinal(Math.min(100, Math.max(1, Number(e.target.value))))} style={{ ...styles.input, margin: 0, flex: 1, textAlign: 'center' }} />
-                        <button onClick={() => setEditingSocFinal((value) => Math.min(100, value + 1))} style={{ width: '44px', height: '44px', borderRadius: '14px', border: '1px solid #c6c6c8', background: '#f2f2f7', fontSize: '24px', cursor: 'pointer' }}>+</button>
+                        <button onClick={() => setEditingSocFinal((value) => Math.min(100, value + 1))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>+</button>
                       </div>
                       <input type="range" min="1" max="100" value={editingSocFinal} onChange={(e) => setEditingSocFinal(Number(e.target.value))} style={styles.slider} />
                     </div>
@@ -675,9 +675,9 @@ function App() {
                   <div style={{ marginTop: '16px' }}>
                     <label style={styles.label}>Potenza ricarica</label>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <button onClick={() => setEditingChargingPower((value) => Math.max(1, value - 0.5))} style={{ width: '44px', height: '44px', borderRadius: '14px', border: '1px solid #c6c6c8', background: '#f2f2f7', fontSize: '24px', cursor: 'pointer' }}>-</button>
+                      <button onClick={() => setEditingChargingPower((value) => Math.max(1, value - 0.5))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>-</button>
                       <input type="number" min="1" max="50" step="0.5" value={editingChargingPower} onChange={(e) => setEditingChargingPower(Math.min(50, Math.max(1, parseFloat(e.target.value || '1'))))} style={{ ...styles.input, flex: 1, margin: 0, textAlign: 'center' }} />
-                      <button onClick={() => setEditingChargingPower((value) => Math.min(50, value + 0.5))} style={{ width: '44px', height: '44px', borderRadius: '14px', border: '1px solid #c6c6c8', background: '#f2f2f7', fontSize: '24px', cursor: 'pointer' }}>+</button>
+                      <button onClick={() => setEditingChargingPower((value) => Math.min(50, value + 0.5))} style={{ width: '44px', height: '44px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', background: 'rgba(255,255,255,0.8)', fontSize: '24px', cursor: 'pointer', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)' }}>+</button>
                     </div>
                   </div>
 
