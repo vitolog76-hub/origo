@@ -156,7 +156,7 @@ function App() {
     const q = query(
       collection(db, 'chargings'),
       where('userId', '==', userId),
-      orderBy('date', 'desc')
+      orderBy('date', 'asc')
     );
     return onSnapshot(q, (snapshot) => {
       const data: ChargingSession[] = [];
