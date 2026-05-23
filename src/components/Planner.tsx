@@ -22,6 +22,8 @@ interface Props {
   onSave: () => void
   getEnergyCost: () => number
   calculateCost: () => number
+  saveMessage?: string | null
+  saveError?: string | null
 }
 
 const adjustPower = (current: number, delta: number, setter: (v: number) => void) => {
@@ -46,7 +48,8 @@ export const Planner: React.FC<Props> = ({
   batteryCapacity, setBatteryCapacity,
   locationType, setLocationType,
   operatorCost, setOperatorCost,
-  result, onCalculate, onSave, getEnergyCost, calculateCost
+  result, onCalculate, onSave, getEnergyCost, calculateCost,
+  saveMessage, saveError
 }) => {
   return (
     <>
@@ -99,6 +102,18 @@ export const Planner: React.FC<Props> = ({
           </div>
           <input type="range" min="20" max="100" step="1" value={batteryCapacity} onChange={(e) => setBatteryCapacity(Number(e.target.value))} style={styles.slider} />
         </div>
+
+        {saveMessage && (
+          <div style={{ marginBottom: '16px', padding: '14px', borderRadius: '18px', background: 'rgba(16, 185, 129, 0.14)', color: '#065f46', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+            ✅ {saveMessage}
+          </div>
+        )}
+
+        {saveError && (
+          <div style={{ marginBottom: '16px', padding: '14px', borderRadius: '18px', background: 'rgba(239, 68, 68, 0.12)', color: '#991b1b', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+            ❌ {saveError}
+          </div>
+        )}
 
         <button onClick={onCalculate} style={styles.buttonPrimary}>Calcola orario inizio</button>
       </div>

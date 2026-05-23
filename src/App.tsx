@@ -86,6 +86,8 @@ function App() {
   const [operatorCost, setOperatorCost] = useState(0.45);
   const [chargings, setChargings] = useState<ChargingSession[]>([]);
   const [result, setResult] = useState<any>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [editingCharge, setEditingCharge] = useState<ChargingSession | null>(null);
   const [editingSocInitial, setEditingSocInitial] = useState(0);
   const [editingSocFinal, setEditingSocFinal] = useState(0);
@@ -227,72 +229,81 @@ function App() {
   const saveCharging = async () => {
     if (!result || !user) return;
 
-    // base values
-    const dateStr = new Date().toISOString().split('T')[0];
-    const kwh = result.kwhNeeded;
-    const energyRate = getEnergyCost();
-    const energyCostValue = kwh * energyRate;
-    const providerFixedMonthlyFee = userProfile?.providerFixedMonthlyFee || 0;
+    try {
+      // base values
+      const dateStr = new Date().toISOString().split('T')[0];
+      const kwh = result.kwhNeeded;
+      const energyRate = getEnergyCost();
+      const energyCostValue = kwh * energyRate;
+      const providerFixedMonthlyFee = userProfile?.providerFixedMonthlyFee || 0;
+      const providerVariableRate = userProfile?.providerVariableRate || 0;
 
-    // create new session with partial costs (fixed portion will be computed in batch)
-    const newSession = {
-      date: dateStr,
-      startTime: result.startTime,
-      endTime: result.endTime,
-      socInitial,
-      socFinal,
-      kwhCharged: kwh,
-      chargingPower,
-      areraCost: energyCostValue,
-      providerVariableCost: 0,
-      providerFixedPortion: 0,
-      totalCost: energyCostValue,
-      locationType,
-      energyCost: energyRate,
-      energyProvider: userProfile?.energyProvider || 'Non specificato',
-      userId: user.uid,
-      createdAt: Timestamp.now()
-    } as any;
+      // create new session with partial costs (fixed portion will be computed in batch)
+      const newSession = {
+        date: dateStr,
+        startTime: result.startTime,
+        endTime: result.endTime,
+        socInitial,
+        socFinal,
+        kwhCharged: kwh,
+        chargingPower,
+        areraCost: energyCostValue,
+        providerVariableCost: 0,
+        providerFixedPortion: 0,
+        totalCost: energyCostValue,
+        locationType,
+        energyCost: energyRate,
+        energyProvider: userProfile?.energyProvider || 'Non specificato',
+        userId: user.uid,
+        createdAt: Timestamp.now()
+      } as any;
 
-    // add new doc first so it is included in month query
-    const docRef = await addDoc(collection(db, 'chargings'), newSession);
+      // add new doc first so it is included in month query
+      await addDoc(collection(db, 'chargings'), newSession);
 
-    // determine month window for this date
-    const d = new Date(dateStr);
-    const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
-    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+      // determine month window for this date
+      const d = new Date(dateStr);
+      const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+      const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
 
-    // fetch all chargings for this user in the same month
-    const q = query(
-      collection(db, 'chargings'),
-      where('userId', '==', user.uid),
-      where('date', '>=', monthStart),
-      where('date', '<=', monthEnd)
-    );
-    const snap = await getDocs(q);
+      // fetch all chargings for this user in the same month
+      const q = query(
+        collection(db, 'chargings'),
+        where('userId', '==', user.uid),
+        where('date', '>=', monthStart),
+        where('date', '<=', monthEnd)
+      );
+      const snap = await getDocs(q);
 
-    const monthTotalKwh = snap.docs.reduce((s, ds) => s + (ds.data().kwhCharged || 0), 0);
+      const monthTotalKwh = snap.docs.reduce((s, ds) => s + (ds.data().kwhCharged || 0), 0);
 
-    // batch update providerFixedPortion and totalCost for all docs in the month
-    const batch = writeBatch(db);
-    snap.forEach(ds => {
-      const data: any = ds.data();
-      const k = data.kwhCharged || 0;
-      const fixedPortion = monthTotalKwh > 0 ? (k / monthTotalKwh) * providerFixedMonthlyFee : 0;
-      const areraC = typeof data.areraCost === 'number' ? data.areraCost : (k * (data.energyCost ?? areraPrice));
-      const providerVarC = typeof data.providerVariableCost === 'number' ? data.providerVariableCost : (k * providerVariableRate);
-      const newTotal = areraC + providerVarC + fixedPortion;
-      batch.update(doc(db, 'chargings', ds.id), {
-        providerFixedPortion: fixedPortion,
-        areraCost: areraC,
-        providerVariableCost: providerVarC,
-        totalCost: newTotal
+      // batch update providerFixedPortion and totalCost for all docs in the month
+      const batch = writeBatch(db);
+      snap.forEach(ds => {
+        const data: any = ds.data();
+        const k = data.kwhCharged || 0;
+        const fixedPortion = monthTotalKwh > 0 ? (k / monthTotalKwh) * providerFixedMonthlyFee : 0;
+        const areraC = typeof data.areraCost === 'number' ? data.areraCost : (k * (data.energyCost ?? areraPrice));
+        const providerVarC = typeof data.providerVariableCost === 'number' ? data.providerVariableCost : (k * providerVariableRate);
+        const newTotal = areraC + providerVarC + fixedPortion;
+        batch.update(doc(db, 'chargings', ds.id), {
+          providerFixedPortion: fixedPortion,
+          areraCost: areraC,
+          providerVariableCost: providerVarC,
+          totalCost: newTotal
+        });
       });
-    });
-    await batch.commit();
+      await batch.commit();
 
-    alert('✅ Ricarica salvata su cloud');
-    setResult(null);
+      setSaveMessage('Ricarica salvata con successo');
+      setSaveError(null);
+      setResult(null);
+      window.setTimeout(() => setSaveMessage(null), 3500);
+    } catch (err: any) {
+      console.error('Errore salvataggio ricarica:', err);
+      setSaveMessage(null);
+      setSaveError(err.message || 'Errore durante il salvataggio');
+    }
   };
 
   const deleteCharging = async (id: string) => {
@@ -566,6 +577,8 @@ function App() {
             onSave={saveCharging}
             getEnergyCost={getEnergyCost}
             calculateCost={() => result ? calculateCost(result.kwhNeeded, locationType) : 0}
+            saveMessage={saveMessage}
+            saveError={saveError}
           />
         )}
 
