@@ -90,6 +90,39 @@ function App() {
     new Date().toISOString().split('T')[0]
   );
 
+  // Load persisted data from localStorage on mount
+  useEffect(() => {
+    const savedPlannerData = localStorage.getItem('plannerData');
+    if (savedPlannerData) {
+      try {
+        const data = JSON.parse(savedPlannerData);
+        if (data.socInitial !== undefined) setSocInitial(data.socInitial);
+        if (data.socFinal !== undefined) setSocFinal(data.socFinal);
+        if (data.targetTime) setTargetTime(data.targetTime);
+        if (data.chargingPower !== undefined) setChargingPower(data.chargingPower);
+        if (data.batteryCapacity !== undefined) setBatteryCapacity(data.batteryCapacity);
+        if (data.locationType) setLocationType(data.locationType);
+        if (data.operatorCost !== undefined) setOperatorCost(data.operatorCost);
+      } catch (e) {
+        console.error('Failed to load planner data from localStorage:', e);
+      }
+    }
+  }, []);
+
+  // Save planner data to localStorage when any value changes
+  useEffect(() => {
+    const plannerData = {
+      socInitial,
+      socFinal,
+      targetTime,
+      chargingPower,
+      batteryCapacity,
+      locationType,
+      operatorCost
+    };
+    localStorage.setItem('plannerData', JSON.stringify(plannerData));
+  }, [socInitial, socFinal, targetTime, chargingPower, batteryCapacity, locationType, operatorCost]);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -429,7 +462,7 @@ function App() {
       minHeight: '100vh',
       background: 'transparent', // SBLOCCATO: Diventa trasparente per far passare i cerchi globali!
       padding: '16px',
-      fontFamily: 'Orbitron, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      fontFamily: 'Inter, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       color: '#f4f4f5',
       boxSizing: 'border-box' as const,
       position: 'relative' as const,
@@ -721,7 +754,7 @@ function App() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <div>
                       <div style={{ fontSize: '14px', fontWeight: '700', textTransform: 'uppercase' }}>Modify Stream Entry</div>
-                      <div style={{ fontSize: '11px', color: '#a1a1aa' }}>{editingCharge.date} • {editingCharge.startTime} → {editingCharge.endTime}</div>
+                      <div style={{ fontSize: '11px', color: '#a1a1aa' }}>{new Date(editingCharge.date).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })} • {editingCharge.startTime} → {editingCharge.endTime}</div>
                     </div>
                     <button onClick={cancelEditingCharging} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#ef4444', lineHeight: 1 }}>×</button>
                   </div>

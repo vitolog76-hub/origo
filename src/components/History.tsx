@@ -72,7 +72,7 @@ export const History: React.FC<Props> = ({ chargings, onDelete, onEdit }) => {
             <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 4px', borderBottom: '1px solid rgba(63, 63, 70, 0.3)' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', color: '#ffffff' }}>
-                  {new Date(c.date).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}
+                  {new Date(c.date).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </div>
                 <div style={{ fontSize: '11px', color: '#a1a1aa', marginTop: '2px' }}>{c.startTime} → {c.endTime}</div>
                 <div style={{ fontSize: '10px', color: '#3b82f6', fontWeight: '600', marginTop: '1px' }}>
