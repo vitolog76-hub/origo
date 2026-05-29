@@ -94,15 +94,17 @@ export const Planner: React.FC<Props> = ({
       width: '42px',
       height: '42px',
       borderRadius: '14px',
-      border: '1px solid rgba(255, 255, 255, 0.12)',
-      background: 'rgba(255, 255, 255, 0.1)',
+      border: '1px solid rgba(59, 130, 246, 0.3)',
+      background: 'rgba(59, 130, 246, 0.15)',
       color: '#ffffff',
       fontSize: '18px',
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontWeight: '500' as const
+      fontWeight: '500' as const,
+      boxShadow: '0 0 12px rgba(59, 130, 246, 0.25), inset 0 0 8px rgba(59, 130, 246, 0.1)',
+      transition: 'all 0.2s ease'
     },
     slider: {
       width: '100%',
@@ -135,7 +137,7 @@ export const Planner: React.FC<Props> = ({
 
         .btn-interactive-primary {
           background: linear-gradient(180deg, rgba(37, 99, 235, 0.24), rgba(15, 23, 42, 0.92));
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(59, 130, 246, 0.4);
           padding: 16px;
           border-radius: 18px;
           color: #ffffff;
@@ -143,25 +145,26 @@ export const Planner: React.FC<Props> = ({
           font-size: 15px;
           cursor: pointer;
           width: 100%;
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 20px 42px rgba(79,70,229,0.18);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 20px 50px rgba(37, 99, 235, 0.35), 0 0 20px rgba(59, 130, 246, 0.25);
           margin-top: 10px;
           transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
         }
         .btn-interactive-primary:hover {
-          filter: brightness(1.08);
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16), 0 26px 52px rgba(79,70,229,0.28);
-          transform: translateY(-1px);
+          filter: brightness(1.15);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16), 0 28px 60px rgba(37, 99, 235, 0.45), 0 0 30px rgba(59, 130, 246, 0.4);
+          transform: translateY(-2px);
         }
         .btn-interactive-primary:active {
           filter: brightness(0.95);
           transform: translateY(1px);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 14px 28px rgba(37, 99, 235, 0.2), 0 0 15px rgba(59, 130, 246, 0.15);
         }
 
         .btn-interactive-success {
           background: linear-gradient(180deg, rgba(16, 185, 129, 0.24), rgba(6, 78, 50, 0.92));
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(16, 185, 129, 0.4);
           padding: 16px;
           border-radius: 18px;
           color: #ffffff;
@@ -169,15 +172,15 @@ export const Planner: React.FC<Props> = ({
           font-size: 15px;
           cursor: pointer;
           width: 100%;
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 20px 42px rgba(16,185,129,0.18);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 20px 50px rgba(16, 185, 129, 0.35), 0 0 20px rgba(16, 185, 129, 0.25);
           transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
         }
         .btn-interactive-success:hover {
-          filter: brightness(1.08);
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16), 0 26px 52px rgba(16,185,129,0.28);
-          transform: translateY(-1px);
+          filter: brightness(1.15);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16), 0 28px 60px rgba(16, 185, 129, 0.45), 0 0 30px rgba(16, 185, 129, 0.4);
+          transform: translateY(-2px);
         }
         .btn-interactive-success:active {
           filter: brightness(0.95);
@@ -194,13 +197,13 @@ export const Planner: React.FC<Props> = ({
           background: rgba(255,255,255,0.06);
           border: 1px solid rgba(255,255,255,0.12);
           color: #e5e7eb;
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 10px 24px rgba(0,0,0,0.14);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 10px 24px rgba(0,0,0,0.14), 0 0 15px rgba(59, 130, 246, 0.15);
           transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
         }
         .btn-location:hover {
-          filter: brightness(1.12);
+          filter: brightness(1.15);
           transform: translateY(-1px);
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 14px 30px rgba(0,0,0,0.18);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 14px 30px rgba(59, 130, 246, 0.2), 0 0 25px rgba(59, 130, 246, 0.25);
         }
         .btn-location:active {
           transform: translateY(1px);

@@ -589,7 +589,7 @@ function App() {
           <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>
             OriGo <span style={{ color: '#3b82f6' }}>⚡</span>
           </h1>
-          <button onClick={handleLogout} className="tech-button secondary" style={{ background: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.32)', color: '#ef4444', padding: '8px 16px', borderRadius: '18px', fontSize: '11px', letterSpacing: '0.12em' }}>Log Out</button>
+          <button onClick={handleLogout} className="tech-button secondary" style={{ background: 'rgba(239, 68, 68, 0.15)', borderColor: 'rgba(239, 68, 68, 0.4)', color: '#ef4444', padding: '8px 16px', borderRadius: '18px', fontSize: '11px', letterSpacing: '0.12em', boxShadow: '0 0 15px rgba(239, 68, 68, 0.25), inset 0 0 8px rgba(239, 68, 68, 0.1)' }}>Log Out</button>
         </div>
 
         {/* TABS CON TRASPARENZA ULTRA LEGGERA ED EFFETTO VETRO (GLASSMORPHISM) */}
