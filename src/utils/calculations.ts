@@ -1,4 +1,4 @@
-import { EnergySettings, CalculationResult } from '../types'
+import type { CalculationResult } from '../types'
 
 export const calculateCharging = (
   socInitial: number,

@@ -1,5 +1,4 @@
-import React from 'react'
-import type { ChargingSession } from '../types'
+import type { FC } from 'react'
 
 interface Props {
   userProfile: any
@@ -9,7 +8,7 @@ interface Props {
   updateUserProfile: (p: any) => void
 }
 
-export const Profile: React.FC<Props> = ({ userProfile, setUserProfile, customProvider, setCustomProvider, updateUserProfile }) => {
+export const Profile: FC<Props> = ({ userProfile, setUserProfile, customProvider, setCustomProvider, updateUserProfile }) => {
   if (!userProfile) return null
 
   const providerOptions = [

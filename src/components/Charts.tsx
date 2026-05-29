@@ -1,12 +1,12 @@
-import React from 'react'
+import type { FC } from 'react'
 import { styles, colors } from '../styles/styles'
-import { ChargingSession } from '../types'
+import type { ChargingSession } from '../types'
 
 interface Props {
   chargings: ChargingSession[]
 }
 
-export const Charts: React.FC<Props> = ({ chargings }) => {
+export const Charts: FC<Props> = ({ chargings }) => {
   const currentMonth = new Date().getMonth()
   const currentYear = new Date().getFullYear()
   
@@ -29,7 +29,7 @@ export const Charts: React.FC<Props> = ({ chargings }) => {
 
   return (
     <div style={styles.card}>
-      <h2 style={styles.title}>Statistiche mensili {currentYear}</h2>
+      <h2 style={{ ...styles.title, letterSpacing: '0.18em' }}>Statistiche mensili {currentYear}</h2>
       
       <div style={{ marginBottom: '20px' }}>
         <div style={{ fontSize: '12px', color: colors.gray, marginBottom: '8px' }}>kWh per mese</div>

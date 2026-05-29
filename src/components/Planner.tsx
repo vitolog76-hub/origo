@@ -57,7 +57,7 @@ export const Planner: React.FC<Props> = ({
       background: '#110d19',
       borderRadius: '24px',
       padding: '24px',
-      border: '1px solid rgba(170, 59, 255, 0.25)', 
+      border: '1px solid rgba(37, 99, 235, 0.25)', 
       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
       marginBottom: '20px',
       position: 'relative' as const,
@@ -134,63 +134,76 @@ export const Planner: React.FC<Props> = ({
         }
 
         .btn-interactive-primary {
-          background: var(--accent);
-          border: none;
+          background: linear-gradient(180deg, rgba(37, 99, 235, 0.24), rgba(15, 23, 42, 0.92));
+          border: 1px solid rgba(255, 255, 255, 0.12);
           padding: 16px;
-          border-radius: 16px;
+          border-radius: 18px;
           color: #ffffff;
           font-weight: 600;
           font-size: 15px;
           cursor: pointer;
           width: 100%;
-          box-shadow: 0 4px 14px rgba(170, 59, 255, 0.4);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 20px 42px rgba(79,70,229,0.18);
           margin-top: 10px;
-          transition: all 0.2s ease-in-out;
+          transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
         }
         .btn-interactive-primary:hover {
-          filter: brightness(1.15);
-          box-shadow: 0 6px 20px rgba(170, 59, 255, 0.6);
+          filter: brightness(1.08);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16), 0 26px 52px rgba(79,70,229,0.28);
           transform: translateY(-1px);
         }
         .btn-interactive-primary:active {
-          filter: brightness(0.9);
+          filter: brightness(0.95);
           transform: translateY(1px);
         }
 
         .btn-interactive-success {
-          background: #10b981;
-          border: none;
+          background: linear-gradient(180deg, rgba(16, 185, 129, 0.24), rgba(6, 78, 50, 0.92));
+          border: 1px solid rgba(255, 255, 255, 0.12);
           padding: 16px;
-          border-radius: 16px;
+          border-radius: 18px;
           color: #ffffff;
           font-weight: 600;
           font-size: 15px;
           cursor: pointer;
           width: 100%;
-          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
-          transition: all 0.2s ease-in-out;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 20px 42px rgba(16,185,129,0.18);
+          transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
         }
         .btn-interactive-success:hover {
-          filter: brightness(1.15);
-          box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+          filter: brightness(1.08);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.16), 0 26px 52px rgba(16,185,129,0.28);
           transform: translateY(-1px);
         }
         .btn-interactive-success:active {
-          filter: brightness(0.9);
+          filter: brightness(0.95);
           transform: translateY(1px);
         }
 
         .btn-location {
           flex: 1;
           padding: 12px;
-          border-radius: 12px;
+          border-radius: 14px;
           cursor: pointer;
           font-weight: 600;
           font-size: 13px;
-          transition: all 0.2s ease;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          color: #e5e7eb;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 10px 24px rgba(0,0,0,0.14);
+          transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
         }
         .btn-location:hover {
-          filter: brightness(1.2);
+          filter: brightness(1.12);
+          transform: translateY(-1px);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 14px 30px rgba(0,0,0,0.18);
+        }
+        .btn-location:active {
+          transform: translateY(1px);
         }
       `}</style>
 
@@ -221,7 +234,7 @@ export const Planner: React.FC<Props> = ({
         <div style={{ marginBottom: '20px' }}>
           <label style={localStyles.label}>Orario Target (auto pronta)</label>
           <div style={{ background: 'rgba(0, 0, 0, 0.4)', borderRadius: '14px', padding: '12px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <input type="time" value={targetTime} onChange={(e) => setTargetTime(e.target.value)} style={{ fontSize: '36px', fontWeight: '700', fontFamily: 'monospace', border: 'none', background: 'transparent', textAlign: 'center', width: '100%', color: 'var(--accent)', outline: 'none' }} />
+            <input type="time" value={targetTime} onChange={(e) => setTargetTime(e.target.value)} style={{ fontSize: '36px', fontWeight: '700', fontFamily: 'var(--sans)', border: 'none', background: 'transparent', textAlign: 'center', width: '100%', color: 'var(--accent)', outline: 'none' }} />
           </div>
         </div>
 
@@ -263,8 +276,8 @@ export const Planner: React.FC<Props> = ({
         <div style={localStyles.card}>
           <h2 style={localStyles.title}>Risultato del calcolo</h2>
           
-          <div style={{ background: 'linear-gradient(135deg, rgba(170, 59, 255, 0.2) 0%, rgba(79, 70, 229, 0.2) 100%)', borderRadius: '16px', padding: '20px', marginBottom: '20px', textAlign: 'center', border: '1px solid rgba(170, 59, 255, 0.3)' }}>
-            <div style={{ color: '#e9d5ff', fontSize: '11px', marginBottom: '4px', fontWeight: '600', letterSpacing: '1px' }}>START CHARGING PROCESS AT</div>
+          <div style={{ background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)', borderRadius: '16px', padding: '20px', marginBottom: '20px', textAlign: 'center', border: '1px solid rgba(37, 99, 235, 0.3)' }}>
+            <div style={{ color: '#93c5fd', fontSize: '11px', marginBottom: '4px', fontWeight: '600', letterSpacing: '1px' }}>START CHARGING PROCESS AT</div>
             <div style={{ fontSize: '46px', fontWeight: '800', color: '#ffffff', marginBottom: '14px', letterSpacing: '-1px' }}>{result.startTime}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '12px' }}>
               <div><div style={{ fontSize: '10px', color: '#cbd5e1', textTransform: 'uppercase' }}>Target</div><div style={{ fontSize: '14px', fontWeight: '700', color: '#fff', marginTop: '2px' }}>{result.endTime}</div></div>
@@ -281,7 +294,7 @@ export const Planner: React.FC<Props> = ({
                 className="btn-location"
                 style={{ 
                   border: locationType === 'home' ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.1)', 
-                  background: locationType === 'home' ? 'rgba(170, 59, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)', 
+                  background: locationType === 'home' ? 'rgba(37, 99, 235, 0.3)' : 'rgba(0, 0, 0, 0.3)', 
                   color: locationType === 'home' ? '#ffffff' : '#9ca3af' 
                 }}
               >
@@ -292,7 +305,7 @@ export const Planner: React.FC<Props> = ({
                 className="btn-location"
                 style={{ 
                   border: locationType === 'public' ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.1)', 
-                  background: locationType === 'public' ? 'rgba(170, 59, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)', 
+                  background: locationType === 'public' ? 'rgba(37, 99, 235, 0.3)' : 'rgba(0, 0, 0, 0.3)', 
                   color: locationType === 'public' ? '#ffffff' : '#9ca3af' 
                 }}
               >
@@ -311,7 +324,7 @@ export const Planner: React.FC<Props> = ({
           <div style={{ background: 'rgba(0, 0, 0, 0.3)', borderRadius: '14px', padding: '16px', textAlign: 'center', marginBottom: '20px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
             <div style={{ color: '#9ca3af', fontSize: '11px', fontWeight: '600', letterSpacing: '0.5px' }}>ESTIMATED SESSION COST</div>
             <div style={{ fontSize: '32px', fontWeight: '800', color: '#10b981', marginTop: '2px' }}>{calculateCost().toFixed(2)} €</div>
-            <div style={{ color: '#cbd5e1', fontSize: '11px', marginTop: '4px', fontFamily: 'monospace' }}>Rate: {getEnergyCost().toFixed(3)} €/kWh</div>
+            <div style={{ color: '#cbd5e1', fontSize: '11px', marginTop: '4px', fontFamily: 'var(--sans)' }}>Rate: {getEnergyCost().toFixed(3)} €/kWh</div>
           </div>
 
           <button onClick={onSave} className="btn-interactive-success">Salva ricarica</button>

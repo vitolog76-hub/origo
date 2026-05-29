@@ -15,9 +15,9 @@ export const colors = {
 export const styles = {
   container: {
     minHeight: '100vh',
-    background: 'radial-gradient(circle at top left, rgba(79, 70, 229, 0.18), transparent 24%), radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.12), transparent 20%), #f8fafc',
+    background: 'radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 24%), radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.12), transparent 20%), #f8fafc',
     padding: '28px',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'var(--sans)',
     color: colors.dark
   } as React.CSSProperties,
   
@@ -41,7 +41,7 @@ export const styles = {
     fontSize: '15px',
     cursor: 'pointer',
     width: '100%',
-    boxShadow: '0 16px 32px rgba(79, 70, 229, 0.2)'
+    boxShadow: '0 16px 32px rgba(37, 99, 235, 0.2)'
   } as React.CSSProperties,
   
   buttonSuccess: {
@@ -88,7 +88,7 @@ export const styles = {
     width: '100%',
     height: '6px',
     borderRadius: '999px',
-    background: 'rgba(79, 70, 229, 0.16)',
+    background: 'rgba(37, 99, 235, 0.16)',
     outline: 'none',
     WebkitAppearance: 'none' as const
   } as React.CSSProperties,

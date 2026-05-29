@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { auth, db } from './firebase/config';
 import {
   signInWithEmailAndPassword,
@@ -131,7 +131,7 @@ function App() {
 
   const updateUserProfile = async (profile: UserProfile) => {
     if (!user) return;
-    await updateDoc(doc(db, 'users', user.uid), profile);
+    await updateDoc(doc(db, 'users', user.uid), { ...profile });
     setUserProfile(profile);
     setBatteryCapacity(profile.batteryCapacity);
     alert('Profilo aggiornato');
@@ -388,7 +388,7 @@ function App() {
       `€ ${ (c.providerFixedPortion ?? 0).toFixed(2) }`,
       `€ ${c.totalCost.toFixed(2)}`,
       c.locationType === 'home' ? 'Home' : 'Pubblica',
-      c.energyProvider,
+      c.energyProvider ?? '',
       `€ ${c.energyCost.toFixed(3)}/kWh`
     ]);
 
@@ -429,7 +429,7 @@ function App() {
       minHeight: '100vh',
       background: 'transparent', // SBLOCCATO: Diventa trasparente per far passare i cerchi globali!
       padding: '16px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      fontFamily: 'Orbitron, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       color: '#f4f4f5',
       boxSizing: 'border-box' as const,
       position: 'relative' as const,
@@ -446,10 +446,10 @@ function App() {
       marginBottom: '16px'
     },
     buttonPrimary: {
-      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-      border: '1px solid rgba(255,255,255,0.1)',
+      background: 'linear-gradient(180deg, rgba(59, 130, 246, 0.22), rgba(15, 23, 42, 0.95))',
+      border: '1px solid rgba(255,255,255,0.12)',
       padding: '14px',
-      borderRadius: '12px',
+      borderRadius: '16px',
       color: '#ffffff',
       fontWeight: '600' as const,
       fontSize: '14px',
@@ -457,13 +457,15 @@ function App() {
       width: '100%',
       textTransform: 'uppercase' as const,
       letterSpacing: '0.5px',
-      boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 18px 40px rgba(59, 130, 246, 0.18)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)'
     },
     buttonSuccess: {
-      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-      border: '1px solid rgba(255,255,255,0.1)',
+      background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.22), rgba(6, 78, 50, 0.95))',
+      border: '1px solid rgba(255,255,255,0.12)',
       padding: '14px',
-      borderRadius: '12px',
+      borderRadius: '16px',
       color: '#ffffff',
       fontWeight: '600' as const,
       fontSize: '14px',
@@ -471,7 +473,9 @@ function App() {
       width: '100%',
       textTransform: 'uppercase' as const,
       letterSpacing: '0.5px',
-      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.2)'
+      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 18px 40px rgba(16, 185, 129, 0.18)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)'
     },
     input: {
       width: '100%',
@@ -530,7 +534,7 @@ function App() {
           body, html, #root {
             background-color: #07040d !important;
             background-image: 
-              radial-gradient(circle at 15% 15%, rgba(79, 70, 229, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.3) 0%, transparent 50%),
               radial-gradient(circle at 85% 75%, rgba(16, 185, 129, 0.15) 0%, transparent 45%) !important;
             background-attachment: fixed;
           }
@@ -551,8 +555,8 @@ function App() {
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.input} />
             </div>
             {error && <div style={{ color: '#ef4444', fontSize: '12px', marginBottom: '14px', textAlign: 'center', fontWeight: '500' }}>{error}</div>}
-            <button onClick={handleEmailAuth} style={styles.buttonPrimary}>{isLogin ? 'Login' : 'Register'}</button>
-            <button onClick={handleGoogleLogin} style={{ ...styles.buttonPrimary, background: '#ffffff', color: '#18181b', marginTop: '10px', boxShadow: 'none' }}>Continue with Google</button>
+            <button onClick={handleEmailAuth} className="tech-button" style={styles.buttonPrimary}>{isLogin ? 'Login' : 'Register'}</button>
+            <button onClick={handleGoogleLogin} className="tech-button" style={{ ...styles.buttonPrimary, background: 'rgba(255, 255, 255, 0.14)', color: '#f4f4f5', marginTop: '10px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 18px 40px rgba(255,255,255,0.12)' }}>Continue with Google</button>
             <div style={{ textAlign: 'center', marginTop: '16px' }}>
               <button onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>
                 {isLogin ? "Don't have an account? Sign up" : 'Already verified? Log in'}
@@ -571,10 +575,10 @@ function App() {
         body, html, #root {
           background-color: #06040a !important;
           background-image: 
-            radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.35) 0%, transparent 50%),
+            radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.35) 0%, transparent 50%),
             radial-gradient(circle at 90% 15%, rgba(16, 185, 129, 0.18) 0%, transparent 45%),
-            radial-gradient(circle at 25% 80%, rgba(170, 59, 255, 0.2) 0%, transparent 50%),
-            radial-gradient(circle at 85% 85%, rgba(79, 70, 229, 0.15) 0%, transparent 40%) !important;
+            radial-gradient(circle at 25% 80%, rgba(37, 99, 235, 0.2) 0%, transparent 50%),
+            radial-gradient(circle at 85% 85%, rgba(37, 99, 235, 0.15) 0%, transparent 40%) !important;
           background-attachment: fixed !important;
           background-size: cover !important;
         }
@@ -585,7 +589,7 @@ function App() {
           <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>
             OriGo <span style={{ color: '#3b82f6' }}>⚡</span>
           </h1>
-          <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #ef4444', padding: '6px 14px', borderRadius: '20px', color: '#ef4444', fontWeight: '600', cursor: 'pointer', fontSize: '11px', textTransform: 'uppercase' }}>Log Out</button>
+          <button onClick={handleLogout} className="tech-button secondary" style={{ background: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.32)', color: '#ef4444', padding: '8px 16px', borderRadius: '18px', fontSize: '11px', letterSpacing: '0.12em' }}>Log Out</button>
         </div>
 
         {/* TABS CON TRASPARENZA ULTRA LEGGERA ED EFFETTO VETRO (GLASSMORPHISM) */}
@@ -670,7 +674,7 @@ function App() {
             <div style={styles.card}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h2 style={{ ...styles.title, marginBottom: 0 }}>LOG CONTROLS</h2>
-                <button onClick={cleanDuplicates} style={{ background: '#27272a', border: '1px solid #3f3f46', padding: '6px 12px', borderRadius: '20px', color: '#f4f4f5', fontWeight: '600', fontSize: '11px', cursor: 'pointer' }}>CLEAN DATA</button>
+                <button onClick={cleanDuplicates} className="tech-button secondary" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)', padding: '8px 14px', borderRadius: '20px', color: '#f4f4f5', fontWeight: '600', fontSize: '11px', cursor: 'pointer' }}>CLEAN DATA</button>
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -707,18 +711,7 @@ function App() {
     <div style={{ flex: 1 }}>
       <input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} style={{ ...styles.input, background: 'rgba(24, 24, 27, 0.6)', padding: '8px', fontSize: '12px' }} />
     </div>
-    <button onClick={exportToPDF} style={{ 
-      background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)', // Pulsante viola cyberpunk atomico
-      border: '1px solid rgba(255,255,255,0.1)', 
-      padding: '8px 16px', 
-      borderRadius: '12px', 
-      color: 'white', 
-      fontWeight: '700', 
-      fontSize: '12px', 
-      cursor: 'pointer', 
-      textTransform: 'uppercase',
-      boxShadow: '0 4px 12px rgba(168, 85, 247, 0.3)' // Glow sul bottone
-    }}>Export</button>
+    <button onClick={exportToPDF} className="tech-button success" style={{ padding: '10px 18px', borderRadius: '16px', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase' }}>Export</button>
   </div>
 </div>
 
@@ -759,8 +752,8 @@ function App() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                    <button onClick={saveChargingEdit} style={{ ...styles.buttonSuccess, padding: '10px', fontSize: '12px' }}>Commit</button>
-                    <button onClick={cancelEditingCharging} style={{ ...styles.buttonPrimary, background: '#27272a', borderColor: '#3f3f46', padding: '10px', fontSize: '12px' }}>Abort</button>
+                    <button onClick={saveChargingEdit} className="tech-button success" style={{ padding: '10px', fontSize: '12px' }}>Commit</button>
+                    <button onClick={cancelEditingCharging} className="tech-button secondary" style={{ background: 'rgba(39, 39, 42, 0.9)', borderColor: 'rgba(255,255,255,0.12)', padding: '10px', fontSize: '12px' }}>Abort</button>
                   </div>
                 </div>
               )}
